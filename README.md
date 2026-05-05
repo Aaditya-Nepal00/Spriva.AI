@@ -1,7 +1,7 @@
 # Spriva AI
 
 Spriva helps nonprofits find grant funding they're actually eligible for,
-draft the applications, and follow up with funders — without the 
+draft the applications, and follow up with funders without the 
 bureaucratic nightmare that usually comes with it.
 
 Built for the Google Gemini Hackathon using Gemini 2.0 Flash, FastAPI, 
