@@ -1,6 +1,6 @@
 # Spriva AI
 
-> **Heads up:** We're currently building this project out for the Google Gemini Hackathon, so it's still very much a work in progress! Expect rough edges while we piece things together.
+> **Heads up:** We're currently building this project out for the Google Cloud Rapid Agent Hackathon, so it's still very much a work in progress! Expect rough edges while we piece things together.
 
 Spriva helps nonprofits find grant funding they're actually eligible for,
 draft the applications, and follow up with funders without the 
