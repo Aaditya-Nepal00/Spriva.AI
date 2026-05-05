@@ -1,37 +1,43 @@
 # Spriva AI
 
+<<<<<<< HEAD
 > **Heads up:** We're currently building this project out for the Google Cloud Rapid Agent Hackathon, so it's still very much a work in progress! Expect rough edges while we piece things together.
+=======
+An AI agent that helps nonprofits find grants, check eligibility, 
+draft applications, and follow up with funders.
+>>>>>>> b921c74 (feat: core agent, grant search, scorer, prompts, tools)
 
-Spriva helps nonprofits find grant funding they're actually eligible for,
-draft the applications, and follow up with funders without the 
-bureaucratic nightmare that usually comes with it.
-
-Built using Gemini 2.0 Flash, FastAPI, and Google's MCP servers (Gmail, Calendar, Drive).
+Built for the Google Cloud Rapid Agent Hackathon using Gemini 2.0 
+Flash and Google MCP servers.
 
 ---
 
-## What it does
+## The problem
 
-You give Spriva your org's name, mission, and focus areas. It searches 
-for matching grants, scores your eligibility against each one, drafts 
-full application sections, books deadlines on your calendar, and sends 
-intro emails to program officers. All from a single prompt.
+Small nonprofits miss billions in available grant funding every year. 
+Not because they don't qualify because they don't have the time or 
+resources to find, apply, and follow up properly.
 
-- Grant discovery via Gemini web grounding
-- Eligibility scoring (0–100) against your org profile
-- Full application drafting (executive summary, budget narrative, etc.)
+Spriva fixes that.
+
+---
+
+## Features
+
+- Grant discovery powered by Gemini 2.0 Flash
+- Eligibility scoring with transparent reasoning
+- Full application drafting
 - Deadline tracking via Google Calendar MCP
-- Funder outreach via Gmail MCP
+- Funder outreach and follow-ups via Gmail MCP
 - Application storage via Google Drive MCP
+- Document Intake upload past grant PDFs and let Spriva 
+  build your org profile automatically
 
 ---
 
 ## Stack
 
-- **AI** — Gemini 2.0 Flash
-- **Backend** — FastAPI / Python 3.11
-- **Frontend** — React + Vite
-- **Actions** — Gmail, Google Calendar, Google Drive (all via MCP)
+Gemini 2.0 Flash · FastAPI · React · Google MCP
 
 ---
 
@@ -40,43 +46,12 @@ intro emails to program officers. All from a single prompt.
 ```bash
 git clone https://github.com/Aaditya-Nepal00/Spriva.AI.git
 cd Spriva.AI
-
 cp .env.example .env
-# Add your GEMINI_API_KEY to .env
-
 pip install -r requirements.txt
 uvicorn backend.main:app --reload --port 5000
 ```
 
-Frontend:
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-You'll need a `GEMINI_API_KEY` from [Google AI Studio](https://aistudio.google.com).
-Google OAuth credentials are required for Calendar, Gmail, and Drive features.
-
----
-
-## Project layout
-backend/
-agent/     → Gemini agent loop, tools, prompts
-mcp/       → Gmail, Calendar, Drive integrations
-grants/    → Search and eligibility scoring
-main.py    → FastAPI app
-frontend/
-src/components/  → React UI
-
----
-
-## Docker
-
-```bash
-docker build -t spriva-ai .
-docker run -p 5000:5000 --env-file .env spriva-ai
-```
+Requires a `GEMINI_API_KEY` from [aistudio.google.com](https://aistudio.google.com).
 
 ---
 
