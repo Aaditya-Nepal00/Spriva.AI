@@ -1,11 +1,7 @@
 # Spriva AI
 
-<<<<<<< HEAD
-> **Heads up:** We're currently building this project out for the Google Cloud Rapid Agent Hackathon, so it's still very much a work in progress! Expect rough edges while we piece things together.
-=======
 An AI agent that helps nonprofits find grants, check eligibility, 
 draft applications, and follow up with funders.
->>>>>>> b921c74 (feat: core agent, grant search, scorer, prompts, tools)
 
 Built for the Google Cloud Rapid Agent Hackathon using Gemini 2.0 
 Flash and Google MCP servers.
@@ -15,7 +11,7 @@ Flash and Google MCP servers.
 ## The problem
 
 Small nonprofits miss billions in available grant funding every year. 
-Not because they don't qualify because they don't have the time or 
+Not because they don't qualify — because they don't have the time or 
 resources to find, apply, and follow up properly.
 
 Spriva fixes that.
@@ -30,7 +26,7 @@ Spriva fixes that.
 - Deadline tracking via Google Calendar MCP
 - Funder outreach and follow-ups via Gmail MCP
 - Application storage via Google Drive MCP
-- Document Intake upload past grant PDFs and let Spriva 
+- Document Intake — upload past grant PDFs and let Spriva 
   build your org profile automatically
 
 ---
