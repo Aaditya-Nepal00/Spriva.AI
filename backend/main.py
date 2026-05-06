@@ -14,6 +14,10 @@ from typing import Optional
 
 from backend.agent.core import agent
 from backend.config import settings
+from backend.elastic.search import elastic_search
+from backend.agent.reasoning import reasoning_engine
+from backend.grants.scorer import scorer
+from backend.agent.intake import intake_agent
 
 
 # ---------------------------------------------------------------------------
@@ -72,6 +76,15 @@ class GrantApplicationRequest(BaseModel):
     grant: dict
 
 
+class DocumentText(BaseModel):
+    text: str
+    filename: str = "document"
+
+
+class MultipleDocuments(BaseModel):
+    documents: list
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -117,18 +130,75 @@ async def chat(body: ChatMessage):
 @app.post("/api/grants/search")
 async def search_grants(body: OrgProfile):
     """
-    Grant discovery endpoint.
-
-    Accepts an organization profile and returns up to 6 matched grant
-    opportunities, each with an eligibility score (0–100).
+    Grant discovery endpoint using Elasticsearch with eligibility scoring.
     """
     try:
-        grants_list = await agent.run_grant_search(body.model_dump())
+        profile_data = body.model_dump()
+        
+        # 1. Call elasticsearch
+        grants = elastic_search.search_grants(profile_data)
+        
+        # 2. Fallback if no results
+        if not grants:
+            grants = await agent.run_grant_search(profile_data)
+            
+        # 3 & 4. Calculate scores for each grant
+        for grant in grants:
+            scores = scorer.calculate_base_score(profile_data, grant)
+            score = scores["total_score"]
+            
+            grant["eligibility_score"] = score
+            grant["score_breakdown"] = scores
+            grant["recommendation"] = (
+                "Strong Match" if score >= 70 
+                else "Good Match" if score >= 50 
+                else "Weak Match"
+            )
+            
+        # 5. Sort by eligibility score
+        grants.sort(key=lambda x: x.get("eligibility_score", 0), reverse=True)
+            
         return {
-            "grants": grants_list,
-            "count": len(grants_list),
+            "grants": grants,
+            "count": len(grants),
             "status": "ok",
         }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/grants/rank")
+async def rank_grants(body: OrgProfile):
+    """
+    Quick ranking endpoint using Reasoning Engine.
+    """
+    try:
+        profile_data = body.model_dump()
+        grants = elastic_search.search_grants(profile_data)
+        
+        ranked_grants = await reasoning_engine.quick_rank(profile_data, grants)
+        
+        return {
+            "grants": ranked_grants,
+            "count": len(ranked_grants),
+            "status": "ok",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/grants/reason")
+async def reason_grants(body: dict):
+    """
+    Agent reasoning endpoint.
+    """
+    try:
+        org_profile = body.get("org_profile")
+        grants = body.get("grants")
+        
+        # Use the reasoning engine created earlier
+        reasoning_result = await reasoning_engine.reason_over_grants(org_profile, grants)
+        return reasoning_result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
@@ -147,5 +217,29 @@ async def draft_application(body: GrantApplicationRequest):
             body.grant,
         )
         return {"application": draft, "status": "ok"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/intake/text")
+async def intake_text(body: DocumentText):
+    """
+    Processes uploaded text from a single document.
+    """
+    try:
+        result = await intake_agent.process_uploaded_text(body.text, body.filename)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/intake/multiple")
+async def intake_multiple(body: MultipleDocuments):
+    """
+    Processes multiple documents and merges profile information.
+    """
+    try:
+        result = await intake_agent.process_multiple_documents(body.documents)
+        return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
