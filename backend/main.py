@@ -19,6 +19,7 @@ from backend.agent.reasoning import reasoning_engine
 from backend.grants.scorer import scorer
 from backend.agent.intake import intake_agent
 from backend.agent.pipeline import pipeline
+from backend.mcp.gmail import gmail_mcp
 
 
 # ---------------------------------------------------------------------------
@@ -89,6 +90,21 @@ class MultipleDocuments(BaseModel):
 class PipelineRequest(BaseModel):
     document_text: str
     filename: str = "document"
+
+
+class FollowUpRequest(BaseModel):
+    org_name: str
+    funder_name: str
+    funder_email: str
+    grant_title: str
+    days_since_first: int = 7
+
+
+class SendEmailRequest(BaseModel):
+    to_email: str
+    subject: str
+    body: str
+    user_approved: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -283,5 +299,61 @@ async def run_pipeline_from_profile(body: OrgProfile):
     except Exception as exc:
         if isinstance(exc, HTTPException):
             raise exc
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/followup/check")
+async def check_followup(body: FollowUpRequest):
+    """
+    Checks if funder replied. If no reply after {days} days, 
+    drafts a follow-up email for user approval.
+    """
+    try:
+        # authenticate() is synchronous in gmail.py
+        if not gmail_mcp.authenticate():
+             return {
+                "status": "auth_required", 
+                "message": "Gmail authentication required",
+                "auth_url": "/auth/gmail"
+            }
+            
+        result = await gmail_mcp.create_followup_if_no_reply(
+            org_name=body.org_name,
+            funder_name=body.funder_name,
+            funder_email=body.funder_email,
+            grant_title=body.grant_title,
+            days_since_first=body.days_since_first
+        )
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/followup/send")
+async def send_followup(body: SendEmailRequest):
+    """
+    Sends or drafts an email via Gmail MCP.
+    """
+    try:
+        if not gmail_mcp.authenticate():
+            return {
+                "status": "auth_required", 
+                "message": "Gmail authentication required",
+                "auth_url": "/auth/gmail"
+            }
+            
+        email_draft = {
+            "to": body.to_email,
+            "subject": body.subject,
+            "body": body.body
+        }
+        
+        # send_email is synchronous in gmail.py
+        result = gmail_mcp.send_email(
+            email_draft, 
+            user_approved=body.user_approved
+        )
+        return result
+    except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 
