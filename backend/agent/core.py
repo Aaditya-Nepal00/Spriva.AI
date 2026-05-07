@@ -36,7 +36,7 @@ class SprivaAgent:
         # settings that will be passed to each chat session.
         # ---------------------------------------------------------------
         self.client = client
-        self.model_name = "gemini-2.0-flash"
+        self.model_name = "gemini-2.5-flash"
 
         # Chat session is created lazily on the first message
         self.chat_session = None

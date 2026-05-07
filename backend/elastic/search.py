@@ -39,6 +39,14 @@ GRANTS_MAPPING = {
             "description": {"type": "text"},
             "application_url": {"type": "keyword"},
             "requirements": {"type": "text"},
+            "funder_website": {"type": "keyword"},
+            "funder_email": {"type": "keyword"},
+            "funder_phone": {"type": "keyword"},
+            "funder_twitter": {"type": "keyword"},
+            "funder_linkedin": {"type": "keyword"},
+            "program_officer": {"type": "text"},
+            "application_portal": {"type": "keyword"},
+            "funder_description": {"type": "text"},
             "indexed_at": {"type": "date"}
         }
     }
@@ -262,8 +270,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["health", "education"],
             "location_requirement": "Global South",
             "description": "Funding innovative projects that improve access to both basic healthcare and primary education in underserved communities.",
-            "application_url": "https://example.com/usaid-grants",
-            "requirements": "Must be a registered NGO. Minimum 3 years of operations."
+            "application_url": "https://www.usaid.gov/work-usaid/get-grant-or-contract/opportunities-for-funding",
+            "requirements": "Must be a registered NGO. Minimum 3 years of operations.",
+            "funder_website": "https://www.usaid.gov",
+            "funder_email": "open@usaid.gov",
+            "funder_phone": "+1-202-712-4810",
+            "funder_twitter": "@USAID",
+            "funder_linkedin": "https://www.linkedin.com/company/usaid",
+            "program_officer": "Administrator Samantha Power",
+            "application_portal": "https://www.grants.gov",
+            "funder_description": "USAID is the world's premier international development agency and a catalytic actor driving development results."
         },
         {
             "id": "g-gates-002",
@@ -277,8 +293,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["climate", "rural development"],
             "location_requirement": "Sub-Saharan Africa, South Asia",
             "description": "Supports local organizations building climate resilience in rural agriculture.",
-            "application_url": "https://example.com/gates-climate",
-            "requirements": "Demonstrated community engagement and measurable climate impact."
+            "application_url": "https://www.gatesfoundation.org/How-We-Work/General-Information/Grant-Opportunities",
+            "requirements": "Demonstrated community engagement and measurable climate impact.",
+            "funder_website": "https://www.gatesfoundation.org",
+            "funder_email": "info@gatesfoundation.org",
+            "funder_phone": "+1-206-709-3100",
+            "funder_twitter": "@gatesfoundation",
+            "funder_linkedin": "https://www.linkedin.com/company/gates-foundation",
+            "program_officer": "Mark Suzman (CEO)",
+            "application_portal": "https://www.gatesfoundation.org/How-We-Work/General-Information/Grant-Opportunities",
+            "funder_description": "The Bill & Melinda Gates Foundation works to help all people lead healthy, productive lives."
         },
         {
             "id": "g-unwomen-003",
@@ -292,8 +316,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["women empowerment", "technology"],
             "location_requirement": "Global",
             "description": "Providing seed funding for women-led tech startups and digital literacy programs for girls.",
-            "application_url": "https://example.com/unwomen-tech",
-            "requirements": "Organization must be at least 50% women-led."
+            "application_url": "https://www.unwomen.org/en/about-us/partnerships/trust-funds",
+            "requirements": "Organization must be at least 50% women-led.",
+            "funder_website": "https://www.unwomen.org",
+            "funder_email": "unwomen.contact@unwomen.org",
+            "funder_phone": "+1-646-781-4400",
+            "funder_twitter": "@UN_Women",
+            "funder_linkedin": "https://www.linkedin.com/company/un-women",
+            "program_officer": "Sima Bahous (Executive Director)",
+            "application_portal": "https://www.unwomen.org/en/about-us/partnerships/trust-funds",
+            "funder_description": "UN Women is the United Nations entity dedicated to gender equality and the empowerment of women."
         },
         {
             "id": "g-worldbank-004",
@@ -307,8 +339,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["technology", "rural development"],
             "location_requirement": "Developing Nations",
             "description": "Grants to improve broadband connectivity and digital infrastructure in remote areas.",
-            "application_url": "https://example.com/worldbank-digital",
-            "requirements": "Partnership with local government required."
+            "application_url": "https://www.worldbank.org/en/about/partners/grants",
+            "requirements": "Partnership with local government required.",
+            "funder_website": "https://www.worldbank.org",
+            "funder_email": "philanthropy@worldbank.org",
+            "funder_phone": "+1-202-473-1000",
+            "funder_twitter": "@WorldBank",
+            "funder_linkedin": "https://www.linkedin.com/company/the-world-bank",
+            "program_officer": "Ajay Banga (President)",
+            "application_portal": "https://www.worldbank.org/en/about/partners/grants",
+            "funder_description": "The World Bank provides loans and grants to the governments of low- and middle-income countries for capital projects."
         },
         {
             "id": "g-ford-005",
@@ -322,8 +362,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["human rights"],
             "location_requirement": "Global",
             "description": "Supporting grassroots movements that protect voting rights and civic space.",
-            "application_url": "https://example.com/ford-civic",
-            "requirements": "Clear track record of advocacy."
+            "application_url": "https://www.fordfoundation.org/work/our-grants/",
+            "requirements": "Clear track record of advocacy.",
+            "funder_website": "https://www.fordfoundation.org",
+            "funder_email": "office-of-communications@fordfoundation.org",
+            "funder_phone": "+1-212-573-5000",
+            "funder_twitter": "@FordFoundation",
+            "funder_linkedin": "https://www.linkedin.com/company/ford-foundation",
+            "program_officer": "Darren Walker (President)",
+            "application_portal": "https://www.fordfoundation.org/work/our-grants/",
+            "funder_description": "The Ford Foundation is a private foundation with the mission of advancing human welfare and social justice."
         },
         {
             "id": "g-opensociety-006",
@@ -337,8 +385,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["human rights", "education"],
             "location_requirement": "Eastern Europe, Latin America",
             "description": "Fellowships and project grants for human rights defenders and legal educators.",
-            "application_url": "https://example.com/opensociety-justice",
-            "requirements": "Proposal must include a public education component."
+            "application_url": "https://www.opensocietyfoundations.org/grants",
+            "requirements": "Proposal must include a public education component.",
+            "funder_website": "https://www.opensocietyfoundations.org",
+            "funder_email": "media@opensocietyfoundations.org",
+            "funder_phone": "+1-212-548-0600",
+            "funder_twitter": "@OpenSociety",
+            "funder_linkedin": "https://www.linkedin.com/company/open-society-foundations",
+            "program_officer": "Mark Malloch-Brown (President)",
+            "application_portal": "https://www.opensocietyfoundations.org/grants",
+            "funder_description": "OSF is the world's largest private funder of independent groups working for justice, democratic governance, and human rights."
         },
         {
             "id": "g-wellcome-007",
@@ -352,8 +408,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["health"],
             "location_requirement": "LMICs (Low and Middle Income Countries)",
             "description": "Funding research and implementation of scalable mental health interventions.",
-            "application_url": "https://example.com/wellcome-mentalhealth",
-            "requirements": "Must involve community-based health workers."
+            "application_url": "https://wellcome.org/grant-funding/schemes",
+            "requirements": "Must involve community-based health workers.",
+            "funder_website": "https://wellcome.org",
+            "funder_email": "fundingsupport@wellcome.org",
+            "funder_phone": "+44-20-7611-8888",
+            "funder_twitter": "@wellcometrust",
+            "funder_linkedin": "https://www.linkedin.com/company/wellcome-trust",
+            "program_officer": "John-Arne Røttingen (CEO)",
+            "application_portal": "https://wellcome.org/grant-funding/schemes",
+            "funder_description": "Wellcome is a global charitable foundation that supports science to solve the urgent health challenges facing everyone."
         },
         {
             "id": "g-skoll-008",
@@ -367,8 +431,16 @@ def seed_sample_grants() -> list:
             "focus_areas": ["climate", "women empowerment"],
             "location_requirement": "Global",
             "description": "Awards for social entrepreneurs creating intersectional solutions for climate change and gender equity.",
-            "application_url": "https://example.com/skoll-award",
-            "requirements": "Demonstrated proof of concept and scalable model."
+            "application_url": "https://skoll.org/about/skoll-award/",
+            "requirements": "Demonstrated proof of concept and scalable model.",
+            "funder_website": "https://skoll.org",
+            "funder_email": "info@skoll.org",
+            "funder_phone": "+1-650-331-1031",
+            "funder_twitter": "@SkollFoundation",
+            "funder_linkedin": "https://www.linkedin.com/company/skoll-foundation",
+            "program_officer": "Don Gips (CEO)",
+            "application_portal": "https://skoll.org/about/skoll-award/",
+            "funder_description": "The Skoll Foundation invests in social entrepreneurs and innovators who help solve the world's most pressing problems."
         }
     ]
     return grants

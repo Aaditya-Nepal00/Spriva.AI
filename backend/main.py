@@ -18,6 +18,7 @@ from backend.elastic.search import elastic_search
 from backend.agent.reasoning import reasoning_engine
 from backend.grants.scorer import scorer
 from backend.agent.intake import intake_agent
+from backend.agent.pipeline import pipeline
 
 
 # ---------------------------------------------------------------------------
@@ -85,6 +86,11 @@ class MultipleDocuments(BaseModel):
     documents: list
 
 
+class PipelineRequest(BaseModel):
+    document_text: str
+    filename: str = "document"
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
@@ -107,7 +113,7 @@ async def health():
     """
     return {
         "status": "healthy",
-        "model": "gemini-2.0-flash",
+        "model": "gemini-2.5-flash",
         "port": settings.PORT,
     }
 
@@ -243,3 +249,39 @@ async def intake_multiple(body: MultipleDocuments):
         return result
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/pipeline/run")
+async def run_pipeline(body: PipelineRequest):
+    """
+    Runs the full Spriva AI pipeline:
+    Document Intake -> Grant Search -> Ranking -> Email Drafting.
+    This is the main demo endpoint.
+    """
+    try:
+        result = await pipeline.run_full_pipeline(body.document_text, body.filename)
+        if result.get("status") == "error":
+            raise HTTPException(status_code=500, detail=result)
+        return result
+    except Exception as exc:
+        if isinstance(exc, HTTPException):
+            raise exc
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/pipeline/from-profile")
+async def run_pipeline_from_profile(body: OrgProfile):
+    """
+    Runs the pipeline starting from an existing profile.
+    Grant Search -> Ranking -> Email Drafting.
+    """
+    try:
+        result = await pipeline.get_best_grant_only(body.model_dump())
+        if result.get("status") == "error":
+            raise HTTPException(status_code=500, detail=result)
+        return result
+    except Exception as exc:
+        if isinstance(exc, HTTPException):
+            raise exc
+        raise HTTPException(status_code=500, detail=str(exc))
+
