@@ -129,7 +129,7 @@ async def health():
     """
     return {
         "status": "healthy",
-        "model": "gemini-2.5-flash",
+        "model": "gemini-3-flash-preview",
         "port": settings.PORT,
     }
 
