@@ -3,6 +3,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     GEMINI_API_KEY: str
+    GOOGLE_CLOUD_PROJECT: str = "spriva-ai"
+    GOOGLE_CLOUD_LOCATION: str = "us-central1"
     ELASTIC_ENDPOINT: str = ""
     ELASTIC_API_KEY: str = ""
     GOOGLE_CLIENT_ID: str = ""

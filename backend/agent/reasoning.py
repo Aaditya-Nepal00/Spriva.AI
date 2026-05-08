@@ -65,11 +65,12 @@ Elasticsearch found these matching grants:
 Their eligibility scores are:
 {json.dumps(score_summary, indent=2)}
 
-As an expert advisor, analyze these grants and provide:
-1. The BEST fit grant and exactly why it suits this org
-2. Any red flags or concerns for each grant
-3. Which grant has the highest chance of success
-4. One specific thing this org should emphasize in each application
+As a Global Strategic Advisor, analyze these grants and provide:
+1. The BEST strategic fit (prioritize high-impact international or global grants if they exist)
+2. A clear explanation of why this grant offers the best global scalability or prestige for the org
+3. Any red flags or concerns for each grant
+4. Which grant has the highest chance of success vs. the highest potential impact
+5. One specific thing this org should emphasize to appeal to a major international donor
 
 Return ONLY a JSON object with these exact keys:
 - best_fit_grant_id: string

@@ -17,12 +17,16 @@ from backend.config import settings
 # ---------------------------------------------------------------------------
 # Instantiate a module-level Gemini client — shared across all agent instances
 # ---------------------------------------------------------------------------
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
+client = genai.Client(
+    vertexai=True,
+    project=settings.GOOGLE_CLOUD_PROJECT,
+    location=settings.GOOGLE_CLOUD_LOCATION,
+)
 
 
 class SprivaAgent:
     """
-    Core Gemini 2.0 Flash agent for Spriva AI.
+    Core Gemini 3 Flash agent for Spriva AI.
 
     Maintains a persistent chat session so the model retains context
     across multiple turns within a single user session. Each public
@@ -36,19 +40,19 @@ class SprivaAgent:
         # settings that will be passed to each chat session.
         # ---------------------------------------------------------------
         self.client = client
-        self.model_name = "gemini-3-flash-preview"
+        self.model_name = "gemini-2.5-flash"
 
         # Chat session is created lazily on the first message
         self.chat_session = None
 
         # System prompt establishes the agent's persona and constraints
         self.system_prompt = (
-            "You are Spriva, an expert AI grant funding assistant for "
-            "nonprofits and NGOs. You help organizations find grants they "
-            "are eligible for, score eligibility, draft professional grant "
-            "applications, track deadlines, and coordinate funder outreach. "
-            "Always be specific, practical, and results-focused. When asked "
-            "to return JSON, return only valid JSON with no extra text."
+            "You are Spriva, a Global Strategic Grant Scout and expert advisor for "
+            "nonprofits and NGOs worldwide. Your mission is to identify the highest-impact "
+            "funding opportunities by searching both local regions and major international "
+            "foundations. You help organizations think globally, score eligibility accurately, "
+            "and draft professional grant applications. Always be specific, practical, "
+            "and results-focused. When asked to return JSON, return only valid JSON."
         )
 
     # -----------------------------------------------------------------------
@@ -64,8 +68,9 @@ class SprivaAgent:
             model=self.model_name,
             config=types.GenerateContentConfig(
                 system_instruction=self.system_prompt,
-                temperature=0.7,
+                temperature=0.0,  # Lower temperature for more factual research
                 max_output_tokens=8192,
+                tools=[types.Tool(google_search=types.GoogleSearch())],
             ),
         )
 
@@ -97,15 +102,9 @@ class SprivaAgent:
 
     async def run_grant_search(self, org_profile: dict) -> list:
         """
-        Ask Gemini to surface six real grant opportunities that match the
-        organisation's profile and return them as a structured list.
-
-        Args:
-            org_profile: Dict with keys — name, mission, focus_areas,
-                         location, budget.
-
-        Returns:
-            A list of up to 6 grant dicts, or an empty list on parse failure.
+        Two-Step Discovery:
+        1. Live Research: Use Google Search to find real grants in text format.
+        2. Structured Extraction: Convert that research into strict JSON.
         """
         name        = org_profile.get("name", "")
         mission     = org_profile.get("mission", "")
@@ -113,36 +112,60 @@ class SprivaAgent:
         location    = org_profile.get("location", "")
         budget      = org_profile.get("budget", "")
 
-        prompt = (
-            f"Find 6 real grant opportunities for this organization:\n"
-            f"Name: {name}\n"
+        # --- STEP 1: Live Research (Text Output) ---
+        search_prompt = (
+            f"You are a Global Strategic Grant Scout. Use Google Search to find 6 REAL, CURRENT grant opportunities for this organization:\n"
+            f"Organization: {name}\n"
             f"Mission: {mission}\n"
             f"Focus Areas: {focus_areas}\n"
             f"Location: {location}\n"
             f"Annual Budget: {budget}\n\n"
-            "Return ONLY a JSON array with 6 grants. Each grant must have:\n"
-            "- title (string)\n"
-            "- funder (string)\n"
-            "- amount (string, e.g. 'Up to $50,000')\n"
-            "- deadline (string)\n"
-            "- eligibility_score (integer 0-100)\n"
-            "- description (string, 2-3 sentences)\n"
-            "- application_url (string)\n"
-            "- why_good_fit (string, 1-2 sentences)\n\n"
-            "Return only the JSON array, no other text."
+            "CRITICAL REQUIREMENT: Do not limit yourself to local Nepal-based grants. "
+            "You MUST find at least 3 opportunities from major INTERNATIONAL foundations (e.g., Bill & Melinda Gates Foundation, Ford Foundation, USAID, "
+            "UN agencies, Rockefeller Foundation, or large global educational trusts) that fund projects in developing nations or education globally. "
+            "Search for 'Global Education Innovation Grants' and 'International Rural Development Funds'. "
+            "For each grant, find: title, funder, amount, deadline, description, website, and a contact email if possible."
         )
 
-        response = await self.send_message(prompt)
-
-        # Extract the JSON array even if the model wraps it in markdown fences
         try:
-            match = re.search(r"\[.*\]", response, re.DOTALL)
-            if not match:
-                raise ValueError("No JSON array found in model response.")
-            grants = json.loads(match.group())
+            print(f"[SprivaAgent] Step 1: Performing live research...")
+            search_response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=search_prompt,
+                config=types.GenerateContentConfig(
+                    tools=[types.Tool(google_search=types.GoogleSearch())],
+                    temperature=0.0,
+                ),
+            )
+            
+            research_data = search_response.text
+            if not research_data:
+                raise ValueError("No research data found.")
+
+            # --- STEP 2: Structured Extraction (Strict JSON Mode) ---
+            print(f"[SprivaAgent] Step 2: Structuring research into JSON...")
+            extract_prompt = (
+                f"Extract the 6 grant opportunities from the following research data into a JSON array:\n\n"
+                f"{research_data}\n\n"
+                "Each object MUST have these keys: "
+                "id, title, funder, amount_text, deadline, description, application_url, "
+                "funder_website, funder_email, program_officer, funder_description, why_good_fit."
+            )
+
+            extraction_response = self.client.models.generate_content(
+                model=self.model_name,
+                contents=extract_prompt,
+                config=types.GenerateContentConfig(
+                    response_mime_type='application/json',
+                    temperature=0.0,
+                ),
+            )
+            
+            grants = json.loads(extraction_response.text)
             return grants
-        except (ValueError, json.JSONDecodeError) as exc:
-            print(f"[SprivaAgent] grant search parse error: {exc}")
+
+        except Exception as exc:
+            print(f"[SprivaAgent] grant discovery error: {exc}")
             return []
 
     # -----------------------------------------------------------------------

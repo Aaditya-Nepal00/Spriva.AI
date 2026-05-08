@@ -3,7 +3,7 @@
 AI agent that helps nonprofits find funding they actually qualify 
 for, draft the applications, and follow up with funders.
 
-Built for the Google Cloud Rapid Agent Hackathon using Gemini 3 
+Built for the Google Cloud Rapid Agent Hackathon using Gemini 2.5 
 Flash, Elasticsearch, and Google MCP servers.
 
 ---
@@ -30,7 +30,7 @@ prompt.
 
 - Grant discovery via Elasticsearch semantic search
 - Eligibility scoring with transparent reasoning
-- Full application drafting powered by Gemini 3 Flash
+- Full application drafting powered by Gemini 2.5 Flash
 - Deadline tracking via Google Calendar MCP
 - Funder outreach + 7-day follow-up via Gmail MCP
 - Application storage via Google Drive MCP
@@ -41,7 +41,7 @@ prompt.
 
 ## Stack
 
-- **AI** — Gemini 3 Flash
+- **AI** — Gemini 2.5 Flash
 - **Search** — Elasticsearch (Elastic Cloud Serverless)
 - **Backend** — FastAPI / Python 3.11
 - **Frontend** — React + Vite
@@ -61,7 +61,7 @@ uvicorn backend.main:app --reload --port 5000
 ```
 
 Requires:
-- `GEMINI_API_KEY` from [aistudio.google.com](https://aistudio.google.com)
+- `GEMINI_API_KEY` from [Google Cloud Console](https://console.cloud.google.com)
 - `ELASTIC_ENDPOINT` and `ELASTIC_API_KEY` from [elastic.co/cloud](https://elastic.co/cloud)
 - Google OAuth credentials for Calendar, Gmail, Drive
 

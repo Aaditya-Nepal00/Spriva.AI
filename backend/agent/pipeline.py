@@ -41,17 +41,16 @@ class SprivaPipeline:
             if not grants:
                 return {"status": "error", "step": "grant_search", "message": "No matching grants found for this organization profile."}
 
-            # Step 3 — Score and rank grants
-            ranked_scores = await self.reasoning.quick_rank(org_profile, grants)
-            if not ranked_scores:
-                return {"status": "error", "step": "grant_ranking", "message": "Failed to score and rank grants."}
+            # Step 3 — Score, rank, and pick the best grant using Reasoning Engine
+            reasoning_result = await self.reasoning.get_best_grant(org_profile, grants)
+            if reasoning_result.get("status") == "error":
+                return {"status": "error", "step": "grant_ranking", "message": reasoning_result.get("error_message")}
             
-            # Take the top ranked grant as best_grant
-            top_score = ranked_scores[0]
-            best_grant = next((g for g in grants if g.get("id") == top_score.get("grant_id")), None)
-            
+            best_grant = reasoning_result.get("grant")
             if not best_grant:
-                return {"status": "error", "step": "grant_ranking", "message": "Could not identify the top grant details."}
+                return {"status": "error", "step": "grant_ranking", "message": "No suitable grant identified by the reasoning engine."}
+            
+            scored_grants = reasoning_result.get("scored_grants", [])
 
             # Step 4 — Build funder profile from best grant
             funder_name = best_grant.get("funder", "Unknown Funder")
@@ -84,12 +83,12 @@ Program Officer: {program_officer}
 Funder Focus: {funder_description}
 
 Write a professional, warm outreach email that:
-1. Opens with a specific connection to the funder's stated priorities
-2. Briefly introduces the org using their ACTUAL programs and impact numbers from the documents
-3. Explains why this specific grant is a strong fit
-4. Closes with a clear ask for a conversation
-5. Is between 200-250 words — not too long
-6. Sounds like a real person wrote it, not AI
+1. Opens with a specific, thoughtful connection to the funder's stated mission or previous investments
+2. Briefly introduces {org_profile['name']} using the unique value proposition and impact metrics found in the documents
+3. Explains clearly why this organization is an ideal partner for the {grant_title} program specifically
+4. Closes with a low-friction request for a brief introductory call
+5. Is concise (under 200 words) and avoids corporate jargon
+6. Sounds like a peer-to-peer communication between experts, not a generic "pitch"
 
 Return ONLY a JSON object with keys:
 - subject: email subject line
@@ -115,7 +114,7 @@ Return ONLY a JSON object with keys:
                     "past_grants_won": intake_result.get("past_grants_won")
                 },
                 "best_grant": best_grant,
-                "all_grants": ranked_scores,
+                "all_grants": scored_grants,
                 "email_draft": {
                     "subject": email_data.get("subject"),
                     "body": email_data.get("body"),
@@ -157,21 +156,28 @@ Return ONLY a JSON object with keys:
             past_grants = org_profile.get("past_grants", org_profile.get("past_grants_won", "N/A"))
             metrics = org_profile.get("impact_metrics", "N/A")
 
-            # Step 2 — Search for matching grants
-            grants = self.elastic.search_grants(org_profile)
+            # Step 2 — Live Research Discovery (instead of just local database)
+            print(f"[Pipeline] Starting live research for {org_name}...")
+            grants = await self.agent.run_grant_search(org_profile)
+            
             if not grants:
-                return {"status": "error", "step": "grant_search", "message": "No matching grants found for this profile."}
+                # Fallback to local index if live research fails
+                print("[Pipeline] Live research yielded no results. Falling back to local index...")
+                grants = self.elastic.search_grants(org_profile)
+                
+            if not grants:
+                return {"status": "error", "step": "grant_search", "message": "No matching grants found via live research or local database."}
 
-            # Step 3 — Score and rank grants
-            ranked_scores = await self.reasoning.quick_rank(org_profile, grants)
-            if not ranked_scores:
-                return {"status": "error", "step": "grant_ranking", "message": "Failed to score and rank grants."}
+            # Step 3 — Score, rank, and pick the best grant using Reasoning Engine
+            reasoning_result = await self.reasoning.get_best_grant(org_profile, grants)
+            if reasoning_result.get("status") == "error":
+                return {"status": "error", "step": "grant_ranking", "message": reasoning_result.get("error_message")}
             
-            top_score = ranked_scores[0]
-            best_grant = next((g for g in grants if g.get("id") == top_score.get("grant_id")), None)
-            
+            best_grant = reasoning_result.get("grant")
             if not best_grant:
-                return {"status": "error", "step": "grant_ranking", "message": "Could not identify the top grant details."}
+                return {"status": "error", "step": "grant_ranking", "message": "No suitable grant identified by the reasoning engine."}
+            
+            scored_grants = reasoning_result.get("scored_grants", [])
 
             # Step 4 — Build funder profile from best grant
             funder_name = best_grant.get("funder", "Unknown Funder")
@@ -203,12 +209,12 @@ Program Officer: {program_officer}
 Funder Focus: {funder_description}
 
 Write a professional, warm outreach email that:
-1. Opens with a specific connection to the funder's stated priorities
-2. Briefly introduces the org using their ACTUAL programs and impact numbers
-3. Explains why this specific grant is a strong fit
-4. Closes with a clear ask for a conversation
-5. Is between 200-250 words — not too long
-6. Sounds like a real person wrote it, not AI
+1. Opens with a specific, thoughtful connection to the funder's stated mission or previous investments
+2. Briefly introduces {org_name} using its unique mission and impact focus
+3. Explains clearly why the organization is an ideal partner for the {grant_title} program specifically
+4. Closes with a low-friction request for a brief introductory call
+5. Is concise (under 200 words) and avoids corporate jargon
+6. Sounds like a peer-to-peer communication between experts, not a generic "pitch"
 
 Return ONLY a JSON object with keys:
 - subject: email subject line
@@ -228,7 +234,7 @@ Return ONLY a JSON object with keys:
                 "status": "complete",
                 "org_profile": org_profile,
                 "best_grant": best_grant,
-                "all_grants": ranked_scores,
+                "all_grants": scored_grants,
                 "email_draft": {
                     "subject": email_data.get("subject"),
                     "body": email_data.get("body"),
