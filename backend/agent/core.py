@@ -26,7 +26,7 @@ client = genai.Client(
 
 class SprivaAgent:
     """
-    Core Gemini 3 Flash agent for Spriva AI.
+    Core Gemini 2.5 Flash agent for Spriva AI.
 
     Maintains a persistent chat session so the model retains context
     across multiple turns within a single user session. Each public
@@ -47,12 +47,13 @@ class SprivaAgent:
 
         # System prompt establishes the agent's persona and constraints
         self.system_prompt = (
-            "You are Spriva, a Global Strategic Grant Scout and expert advisor for "
-            "nonprofits and NGOs worldwide. Your mission is to identify the highest-impact "
-            "funding opportunities by searching both local regions and major international "
-            "foundations. You help organizations think globally, score eligibility accurately, "
-            "and draft professional grant applications. Always be specific, practical, "
-            "and results-focused. When asked to return JSON, return only valid JSON."
+            "You are Spriva, a Global Strategic Grant Scout. "
+            "IMPORTANT: Your responses must be ultra-concise and conversational. "
+            "NEVER write long paragraphs or essays. "
+            "Use clear bullet points and leave an empty line between each item. "
+            "Always include official clickable website links as [Name](URL). "
+            "If asked for research, provide a list of max 4-5 results with 1-2 sentences each. "
+            "Use double spacing between sections to keep the UI clean and readable."
         )
 
     # -----------------------------------------------------------------------
